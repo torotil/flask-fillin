@@ -53,12 +53,12 @@ class FormWrapper(Response):
             # add submit function to all links
             def _submit(self, client, path=None, **kargs):
                 data = dict(self.form_values())
-                if kargs.has_key('data'):
+                if 'data' in kargs:
                     data.update(kargs['data'])
                     del kargs['data']
                 if path is None:
                     path = self.action
-                if not kargs.has_key('method'):
+                if not 'method' in kargs:
                     kargs['method'] = self.method
                 return client.open(path, data=data, **kargs)
                 
