@@ -36,6 +36,7 @@ class FormWrapper(Response):
     """
         
     _parsed_html = None
+    _forms = None
     
     @property
     def html(self):
@@ -50,7 +51,17 @@ class FormWrapper(Response):
             for link in self._parsed_html.iter('a'):
                 setattr(link, 'click', types.MethodType(_click, link))
             
-            # add submit function to all links
+        return self._parsed_html
+    
+    @property
+    def forms(self):
+        """A list of all received forms in the same way like 
+        `lxml <http://lxml.de/lxmlhtml.html#forms>`_ with the same functions 
+        and an additional function to submit the form over a test client.
+        """
+        if self._forms is None:
+            self._forms = []
+
             def _submit(self, client, path=None, **kargs):
                 data = dict(self.form_values())
                 if 'data' in kargs:
@@ -61,18 +72,12 @@ class FormWrapper(Response):
                 if not 'method' in kargs:
                     kargs['method'] = self.method
                 return client.open(path, data=data, **kargs)
-                
-            for form in self._parsed_html.forms:
+
+            for form in self.html.forms:
                 setattr(form, "submit", types.MethodType(_submit, form))
-        return self._parsed_html
-    
-    @property
-    def forms(self):
-        """A list of all received forms in the same way like 
-        `lxml <http://lxml.de/lxmlhtml.html#forms>`_ with the same functions 
-        and an additional function to submit the form over a test client.
-        """
-        return self.html.forms
+                self._forms.append(form)
+
+        return self._forms
     
     @property
     def form(self):
